@@ -1,5 +1,5 @@
 app = "microservicestest"
-primary_region = "jnb"
+primary_region = "usa"
 
 [build]
   dockerfile = "Dockerfile"
