@@ -106,6 +106,10 @@ export class PaymentService {
     return this.paymentRepo.findById(paymentId, ownerId);
   };
 
+  public listPayments = async (ownerId: string): Promise<IPayment[]> => {
+    return this.paymentRepo.findAll(ownerId);
+  };
+
   public handleWebhook = async (
     provider: PaymentProvider,
     rawBody: Buffer,

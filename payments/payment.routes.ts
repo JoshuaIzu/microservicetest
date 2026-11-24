@@ -21,6 +21,8 @@ export function createPaymentRoutes(
     controller.createPayment,
   );
 
+  router.get("/", authenticate, controller.listPayments);
+
   router.get("/:id", authenticate, controller.getPaymentById);
 
   return router;

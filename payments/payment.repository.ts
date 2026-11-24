@@ -69,6 +69,15 @@ export class PaymentRepository implements IPaymentRepository {
     return record ? paymentSchema.parse(record) : null;
   }
 
+  public async findAll(ownerId: string): Promise<IPayment[]> {
+    const records = await this.db.payment.findMany({
+      where: { ownerId },
+      select: paymentSelect,
+    });
+
+    return records.map((record) => paymentSchema.parse(record));
+  }
+
   public async recordChargeOutcome(
     paymentId: string,
     chargeStatus: ChargeStatus,

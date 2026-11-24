@@ -52,6 +52,19 @@ export class PaymentController {
     },
   );
 
+  public listPayments: AuthRequestHandler = asyncHandler(
+    async (req, res) => {
+      const auth = res.locals.auth;
+
+      if (!auth) {
+        res.status(401).json({ error: "UNAUTHENTICATED" });
+        return;
+      }
+
+      res.status(200).json(await this.paymentService.listPayments(auth.sub));
+    },
+  );
+
   public getPaymentById: AuthRequestHandler = asyncHandler(
     async (req, res) => {
       const auth = res.locals.auth;

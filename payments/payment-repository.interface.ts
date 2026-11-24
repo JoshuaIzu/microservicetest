@@ -11,6 +11,7 @@ export interface IPaymentRepository {
     data: ICreatePaymentParams,
   ): Promise<{ payment: IPayment; created: boolean }>;
   findById(paymentId: string, ownerId: string): Promise<IPayment | null>;
+  findAll(ownerId: string): Promise<IPayment[]>;
   recordChargeOutcome(
     paymentId: string,
     chargeStatus: ChargeStatus,
