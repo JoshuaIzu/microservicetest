@@ -10,6 +10,7 @@ import {
 export {
   CURRENCIES,
   PAYMENT_PROVIDERS,
+  paymentProviderSchema,
   type Currency,
   type PaymentProvider,
 } from "../events/payment-captured.contract";

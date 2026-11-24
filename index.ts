@@ -141,6 +141,10 @@ app.use(
   createSettlementRoutes(settlementController, authMiddleware.authenticate),
 );
 
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
 });
