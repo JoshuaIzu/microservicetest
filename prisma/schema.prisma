@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["fintech"]
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  @@schema("fintech")
+}
+
+model RevokedToken {
+  id        String   @id @db.Uuid
+  expiresAt DateTime
+
+  @@index([expiresAt])
+  @@schema("fintech")
+}
+
+model Payment {
+  id          String @id @default(uuid()) @db.Uuid
+  ownerId     String @db.Uuid
+  key         String
+  amountMinor Int
+  currency    String
+  provider    String
+  status      String @default("PENDING")
+
+  @@unique([ownerId, key])
+  @@schema("fintech")
+}
+
+model OutboxEvent {
+  id          String    @id @db.Uuid
+  payload     Json
+  createdAt   DateTime  @default(now())
+  deliveredAt DateTime?
+
+  @@index([deliveredAt, createdAt])
+  @@schema("fintech")
+}
+
+model Journal {
+  paymentId String  @id @db.Uuid
+  eventId   String  @unique @db.Uuid
+  currency  String
+  entries   Entry[]
+
+  @@schema("fintech")
+}
+
+model Entry {
+  id          String  @id @default(uuid()) @db.Uuid
+  paymentId   String  @db.Uuid
+  journal     Journal @relation(fields: [paymentId], references: [paymentId])
+  account     String
+  side        String
+  amountMinor Int
+
+  @@index([paymentId])
+  @@schema("fintech")
+}
+
+model Settlement {
+  paymentId   String @id @db.Uuid
+  amountMinor Int
+  currency    String
+  provider    String
+
+  @@schema("fintech")
+}
