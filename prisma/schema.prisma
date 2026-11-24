@@ -33,6 +33,8 @@ model Payment {
   currency    String
   provider    String
   status      String @default("PENDING")
+  chargeStatus    String?
+  chargeReference String?
 
   @@unique([ownerId, key])
   @@schema("fintech")

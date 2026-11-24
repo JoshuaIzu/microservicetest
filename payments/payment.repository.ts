@@ -8,6 +8,7 @@ import type { IPaymentRepository } from "./payment-repository.interface";
 import {
   paymentSchema,
   type CaptureResult,
+  type ChargeStatus,
   type ICreatePaymentParams,
   type IPayment,
 } from "./payment.types";
@@ -18,6 +19,8 @@ const paymentSelect = {
   currency: true,
   provider: true,
   status: true,
+  chargeStatus: true,
+  chargeReference: true,
 } satisfies Prisma.PaymentSelect;
 
 export class PaymentRepository implements IPaymentRepository {
@@ -64,6 +67,17 @@ export class PaymentRepository implements IPaymentRepository {
     });
 
     return record ? paymentSchema.parse(record) : null;
+  }
+
+  public async recordChargeOutcome(
+    paymentId: string,
+    chargeStatus: ChargeStatus,
+    chargeReference: string,
+  ): Promise<void> {
+    await this.db.payment.update({
+      where: { id: paymentId },
+      data: { chargeStatus, chargeReference },
+    });
   }
 
   public async capture(notice: CaptureNotice): Promise<CaptureResult> {

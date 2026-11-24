@@ -118,6 +118,35 @@ export class FlutterwaveProvider implements IPaymentProvider {
     };
   }
 
+  public async verifyCharge(reference: string): Promise<IChargeResult | null> {
+    const response = await this.fetchImpl(
+      `${FLUTTERWAVE_API}/transactions/verify_by_reference?tx_ref=${encodeURIComponent(reference)}`,
+      { headers: { Authorization: `Bearer ${this.secretKey}` } },
+    );
+
+    const payload = (await response.json()) as {
+      status?: string;
+      data?: { status?: string; tx_ref?: string };
+    };
+
+    if (!response.ok || payload.status !== "success" || !payload.data) {
+      return null;
+    }
+
+    const gatewayStatus = payload.data.status ?? "failed";
+    const status: ChargeStatus =
+      gatewayStatus === "successful"
+        ? "success"
+        : gatewayStatus === "failed"
+          ? "failed"
+          : "pending";
+
+    return {
+      status,
+      providerRef: payload.data.tx_ref ?? reference,
+    };
+  }
+
   public verifyCapture(
     rawBody: Buffer,
     headers: IncomingHttpHeaders,

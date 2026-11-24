@@ -7,6 +7,7 @@ import type {
 
 export interface IPaymentProvider {
   charge(request: IProviderChargeRequest): Promise<IChargeResult>;
+  verifyCharge(reference: string): Promise<IChargeResult | null>;
   verifyCapture(
     rawBody: Buffer,
     headers: IncomingHttpHeaders,

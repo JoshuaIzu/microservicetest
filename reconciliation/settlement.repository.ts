@@ -16,6 +16,7 @@ export class SettlementRepository implements ISettlementRepository {
         provider: true,
         currency: true,
         amountMinor: true,
+        status: true,
       },
     });
 
@@ -23,10 +24,20 @@ export class SettlementRepository implements ISettlementRepository {
       return null;
     }
 
-    const matched =
+    const fieldsMatch =
       payment.provider === dto.provider &&
       payment.currency === dto.currency &&
       payment.amountMinor === dto.amountMinor;
+
+    const journal = fieldsMatch
+      ? await this.db.journal.findUnique({
+          where: { paymentId: payment.id },
+          select: { paymentId: true },
+        })
+      : null;
+
+    const settled =
+      payment.status === "CAPTURED" && journal !== null;
 
     await this.db.settlement.upsert({
       where: { paymentId: payment.id },
@@ -44,7 +55,7 @@ export class SettlementRepository implements ISettlementRepository {
     });
 
     return {
-      status: matched ? "matched" : "discrepancy",
+      status: !fieldsMatch ? "discrepancy" : settled ? "matched" : "pending",
       paymentId: payment.id,
     };
   }

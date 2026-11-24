@@ -1,4 +1,8 @@
-import express, { type Request, type Response } from "express";
+import express, {
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
 import { PrismaClient } from "@prisma/client";
 
 import { AuthController } from "./auth/auth.controller";
@@ -141,9 +145,21 @@ app.use(
   createSettlementRoutes(settlementController, authMiddleware.authenticate),
 );
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+app.get("/health", async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: "ok" });
+  } catch {
+    res.status(503).json({ status: "unavailable" });
+  }
 });
+
+app.use(
+  (err: unknown, _req: Request, res: Response, _next: NextFunction): void => {
+    console.error(err);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  },
+);
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);

@@ -33,6 +33,8 @@ export interface IPayment extends ICreatePaymentDTO {
   id: string;
   provider: PaymentProvider;
   status: PaymentStatus;
+  chargeStatus: ChargeStatus | null;
+  chargeReference: string | null;
 }
 
 export const cardMethodSchema = z.object({
@@ -86,7 +88,7 @@ export interface IChargeResult {
 export interface ICreatePaymentResponse {
   paymentId: string;
   provider: PaymentProvider;
-  charge: IChargeResult | null;
+  charge: IChargeResult;
 }
 
 export type CaptureResult = "applied" | "duplicate" | "unmatched" | "mismatch";
@@ -102,11 +104,15 @@ export const createPaymentSchema = z.object({
   paymentMethod: paymentMethodSchema,
 }).strict();
 
-export const paymentSchema = createPaymentSchema.omit({
-  email: true,
-  paymentMethod: true,
-}).extend({
-  id: paymentIdSchema,
-  provider: paymentProviderSchema,
-  status: z.enum(PAYMENT_STATUSES),
-});
+export const paymentSchema = createPaymentSchema
+  .omit({
+    email: true,
+    paymentMethod: true,
+  })
+  .extend({
+    id: paymentIdSchema,
+    provider: paymentProviderSchema,
+    status: z.enum(PAYMENT_STATUSES),
+    chargeStatus: z.enum(["success", "pending", "failed"]).nullable(),
+    chargeReference: z.string().nullable(),
+  });

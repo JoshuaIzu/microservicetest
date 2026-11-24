@@ -1,3 +1,4 @@
+import { asyncHandler } from "../shared/async-handler";
 import type { AuthRequestHandler } from "../auth/auth.middleware";
 import type { PaymentService } from "./payment.service";
 import {
@@ -19,78 +20,84 @@ const webhookStatus = {
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
-  public createPayment: AuthRequestHandler = async (req, res) => {
-    const auth = res.locals.auth;
+  public createPayment: AuthRequestHandler = asyncHandler(
+    async (req, res) => {
+      const auth = res.locals.auth;
 
-    if (!auth) {
-      res.status(401).json({ error: "UNAUTHENTICATED" });
-      return;
-    }
+      if (!auth) {
+        res.status(401).json({ error: "UNAUTHENTICATED" });
+        return;
+      }
 
-    const input = createPaymentSchema.safeParse(req.body);
-    const key = idempotencyKeySchema.safeParse(req.get("Idempotency-Key"));
+      const input = createPaymentSchema.safeParse(req.body);
+      const key = idempotencyKeySchema.safeParse(req.get("Idempotency-Key"));
 
-    if (!input.success || !key.success) {
-      res.status(400).json({ error: "INVALID_PAYMENT_INPUT" });
-      return;
-    }
+      if (!input.success || !key.success) {
+        res.status(400).json({ error: "INVALID_PAYMENT_INPUT" });
+        return;
+      }
 
-    const result = await this.paymentService.createPayment(
-      auth.sub,
-      key.data,
-      input.data,
-    );
+      const result = await this.paymentService.createPayment(
+        auth.sub,
+        key.data,
+        input.data,
+      );
 
-    if (!result) {
-      res.status(409).json({ error: "IDEMPOTENCY_CONFLICT" });
-      return;
-    }
+      if (!result) {
+        res.status(409).json({ error: "IDEMPOTENCY_CONFLICT" });
+        return;
+      }
 
-    res.status(202).json(result);
-  };
+      res.status(202).json(result);
+    },
+  );
 
-  public getPaymentById: AuthRequestHandler = async (req, res) => {
-    const auth = res.locals.auth;
+  public getPaymentById: AuthRequestHandler = asyncHandler(
+    async (req, res) => {
+      const auth = res.locals.auth;
 
-    if (!auth) {
-      res.status(401).json({ error: "UNAUTHENTICATED" });
-      return;
-    }
+      if (!auth) {
+        res.status(401).json({ error: "UNAUTHENTICATED" });
+        return;
+      }
 
-    const paymentId = paymentIdSchema.safeParse(req.params.id);
+      const paymentId = paymentIdSchema.safeParse(req.params.id);
 
-    if (!paymentId.success) {
-      res.status(400).json({ error: "INVALID_PAYMENT_ID" });
-      return;
-    }
+      if (!paymentId.success) {
+        res.status(400).json({ error: "INVALID_PAYMENT_ID" });
+        return;
+      }
 
-    const payment = await this.paymentService.getPaymentById(
-      paymentId.data,
-      auth.sub,
-    );
+      const payment = await this.paymentService.getPaymentById(
+        paymentId.data,
+        auth.sub,
+      );
 
-    if (!payment) {
-      res.status(404).json({ error: "PAYMENT_NOT_FOUND" });
-      return;
-    }
+      if (!payment) {
+        res.status(404).json({ error: "PAYMENT_NOT_FOUND" });
+        return;
+      }
 
-    res.status(200).json(payment);
-  };
+      res.status(200).json(payment);
+    },
+  );
 
-  public handleWebhook: AuthRequestHandler = async (req, res) => {
-    const provider = paymentProviderSchema.safeParse(req.params.provider);
+  public handleWebhook: AuthRequestHandler = asyncHandler(
+    async (req, res) => {
+      const provider = paymentProviderSchema.safeParse(req.params.provider);
 
-    if (!provider.success || !Buffer.isBuffer(req.body)) {
-      res.status(400).json({ error: "INVALID_WEBHOOK_REQUEST" });
-      return;
-    }
+      if (!provider.success || !Buffer.isBuffer(req.body)) {
+        res.status(400).json({ error: "INVALID_WEBHOOK_REQUEST" });
+        return;
+      }
 
-    const result = await this.paymentService.handleWebhook(
-      provider.data,
-      req.body,
-      req.headers,
-    );
+      const result = await this.paymentService.handleWebhook(
+        provider.data,
+        req.body,
+        req.headers,
+      );
 
-    res.status(webhookStatus[result]).json({ status: result });
-  };
+      res.status(webhookStatus[result]).json({ status: result });
+    },
+  );
 }

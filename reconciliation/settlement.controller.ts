@@ -1,3 +1,4 @@
+import { asyncHandler } from "../shared/async-handler";
 import type { AuthRequestHandler } from "../auth/auth.middleware";
 import type { SettlementService } from "./settlement.service";
 import { settlementSchema } from "./settlement.types";
@@ -5,7 +6,7 @@ import { settlementSchema } from "./settlement.types";
 export class SettlementController {
   constructor(private readonly settlementService: SettlementService) {}
 
-  public reconcile: AuthRequestHandler = async (req, res) => {
+  public reconcile: AuthRequestHandler = asyncHandler(async (req, res) => {
     const auth = res.locals.auth;
 
     if (!auth) {
@@ -27,6 +28,6 @@ export class SettlementController {
       return;
     }
 
-    res.status(200).json(result);
-  };
+    res.status(result.status === "pending" ? 202 : 200).json(result);
+  });
 }

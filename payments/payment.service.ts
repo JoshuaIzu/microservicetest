@@ -1,6 +1,7 @@
 import type { IncomingHttpHeaders } from "node:http";
 import type { IPaymentRepository } from "./payment-repository.interface";
 import type {
+  IChargeResult,
   ICreatePaymentInput,
   ICreatePaymentResponse,
   IPayment,
@@ -40,23 +41,19 @@ export class PaymentService {
       return null;
     }
 
-    if (!created) {
-      return { paymentId: payment.id, provider: payment.provider, charge: null };
-    }
-
     const gateway = this.providers.get(provider);
 
     if (!gateway) {
       throw new Error(`No payment provider registered for ${provider}`);
     }
 
-    const charge = await gateway.charge({
-      paymentId: payment.id,
-      amountMinor,
-      currency,
-      email: input.email,
-      paymentMethod: input.paymentMethod,
-    });
+    const charge = await this.resolveCharge(gateway, payment, created, input);
+
+    await this.paymentRepo.recordChargeOutcome(
+      payment.id,
+      charge.status,
+      charge.providerRef,
+    );
 
     return {
       paymentId: payment.id,
@@ -64,6 +61,43 @@ export class PaymentService {
       charge,
     };
   };
+
+  private async resolveCharge(
+    gateway: IPaymentProvider,
+    payment: IPayment,
+    created: boolean,
+    input: ICreatePaymentInput,
+  ): Promise<IChargeResult> {
+    const request = {
+      paymentId: payment.id,
+      amountMinor: input.amountMinor,
+      currency: input.currency,
+      email: input.email,
+      paymentMethod: input.paymentMethod,
+    };
+
+    if (created) {
+      return gateway.charge(request);
+    }
+
+    if (
+      payment.chargeStatus === "success" ||
+      payment.chargeStatus === "pending"
+    ) {
+      return {
+        status: payment.chargeStatus,
+        providerRef: payment.chargeReference ?? payment.id,
+      };
+    }
+
+    const recovered = await gateway.verifyCharge(payment.id);
+
+    if (recovered && recovered.status !== "failed") {
+      return recovered;
+    }
+
+    return gateway.charge(request);
+  }
 
   public getPaymentById = async (
     paymentId: string,

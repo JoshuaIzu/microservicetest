@@ -1,4 +1,5 @@
 import type { RequestHandler } from "express";
+import { asyncHandler } from "../shared/async-handler";
 import type { AuthService } from "./auth.service";
 import type { AuthRequestHandler } from "./auth.middleware";
 import { loginSchema, signupSchema } from "./auth.types";
@@ -6,7 +7,7 @@ import { loginSchema, signupSchema } from "./auth.types";
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  public signUp: RequestHandler = async (req, res) => {
+  public signUp: RequestHandler = asyncHandler(async (req, res) => {
     res.set("Cache-Control", "no-store");
     const input = signupSchema.safeParse(req.body);
 
@@ -22,9 +23,9 @@ export class AuthController {
     }
 
     res.status(201).json(result);
-  };
+  });
 
-  public login: RequestHandler = async (req, res) => {
+  public login: RequestHandler = asyncHandler(async (req, res) => {
     res.set("Cache-Control", "no-store");
     const input = loginSchema.safeParse(req.body);
 
@@ -40,9 +41,9 @@ export class AuthController {
     }
 
     res.status(200).json(result);
-  };
+  });
 
-  public getMe: AuthRequestHandler = async (_req, res) => {
+  public getMe: AuthRequestHandler = asyncHandler(async (_req, res) => {
     res.set("Cache-Control", "no-store");
     const auth = res.locals.auth;
 
@@ -58,9 +59,9 @@ export class AuthController {
     }
 
     res.status(200).json(user);
-  };
+  });
 
-  public logout: AuthRequestHandler = async (_req, res) => {
+  public logout: AuthRequestHandler = asyncHandler(async (_req, res) => {
     const auth = res.locals.auth;
 
     if (!auth) {
@@ -70,5 +71,5 @@ export class AuthController {
 
     await this.authService.logout(auth);
     res.status(204).end();
-  };
+  });
 }

@@ -39,13 +39,24 @@ const emailSchema = z.string()
   .email()
   .transform((email: string) => email.toLowerCase());
 
+const withinBcryptLimit = (password: string): boolean =>
+  Buffer.byteLength(password, "utf8") <= 72;
+
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1).max(256),
+  password: z
+    .string()
+    .min(1)
+    .max(256)
+    .refine(withinBcryptLimit),
 }).strict();
 
 export const signupSchema = loginSchema.extend({
-  password: z.string().min(15).max(256),
+  password: z
+    .string()
+    .min(15)
+    .max(256)
+    .refine(withinBcryptLimit),
 });
 
 export const jwtPayloadSchema = z.object({

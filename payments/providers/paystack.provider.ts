@@ -100,13 +100,42 @@ export class PaystackProvider implements IPaymentProvider {
     };
   }
 
+  public async verifyCharge(reference: string): Promise<IChargeResult | null> {
+    const response = await this.fetchImpl(
+      `${PAYSTACK_API}/transaction/verify/${encodeURIComponent(reference)}`,
+      { headers: { Authorization: `Bearer ${this.secretKey}` } },
+    );
+
+    const payload = (await response.json()) as {
+      status?: boolean;
+      data?: { status?: string; reference?: string };
+    };
+
+    if (!response.ok || !payload.status || !payload.data) {
+      return null;
+    }
+
+    const gatewayStatus = payload.data.status ?? "failed";
+    const status: ChargeStatus =
+      gatewayStatus === "success"
+        ? "success"
+        : gatewayStatus === "failed" || gatewayStatus === "abandoned"
+          ? "failed"
+          : "pending";
+
+    return {
+      status,
+      providerRef: payload.data.reference ?? reference,
+    };
+  }
+
   public verifyCapture(
     rawBody: Buffer,
     headers: IncomingHttpHeaders,
   ): CaptureNotice | null {
     const signature = headers["x-paystack-signature"];
 
-    if (typeof signature !== "string" || !/^[a-f0-9]{512}$/i.test(signature)) {
+    if (typeof signature !== "string" || !/^[a-f0-9]{128}$/i.test(signature)) {
       return null;
     }
 

@@ -6,7 +6,7 @@ export const settlementSchema = captureNoticeSchema;
 export type ISettlementDTO = z.infer<typeof settlementSchema>;
 
 export type SettlementResult = {
-  status: "matched" | "discrepancy";
+  status: "matched" | "discrepancy" | "pending";
   paymentId: string;
 } | null;
 

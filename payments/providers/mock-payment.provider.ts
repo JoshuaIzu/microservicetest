@@ -24,6 +24,10 @@ export class MockPaymentProvider implements IPaymentProvider {
     };
   }
 
+  public async verifyCharge(reference: string): Promise<IChargeResult> {
+    return { status: "success", providerRef: reference };
+  }
+
   public verifyCapture(
     rawBody: Buffer,
     headers: IncomingHttpHeaders,
