@@ -5,7 +5,7 @@
   "description": "Fintech identity, payments, ledger, and reconciliation microservices",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "start": "node dist/index.js",
+    "start": "node --env-file-if-exists=.env dist/index.js",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prisma:generate": "prisma generate",
