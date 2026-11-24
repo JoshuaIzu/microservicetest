@@ -14,6 +14,7 @@ COPY events ./events
 COPY ledger ./ledger
 COPY payments ./payments
 COPY reconciliation ./reconciliation
+COPY shared ./shared
 COPY index.ts ./
 
 RUN npm run build
