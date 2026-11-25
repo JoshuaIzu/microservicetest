@@ -3,7 +3,7 @@
 
 ## Project background
 
-A Demo project initial built with as monolith but transformed to a microservice architecture using the features, auth and payment as one entity, ledger as another entity and then reconcition as another entity. 
+A Demo project initial built as monolith but transformed to a microservice architecture using the features, auth and payment as one entity, ledger as another entity and then reconcition as another entity. 
 
 Three entities in total each with its own database. And RabbitMQ acting as kafka for event streams connecting from payment to ledger and reconciliation(settlement). local transfer using outbox.publisher for the payment notification.
 
