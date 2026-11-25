@@ -54,7 +54,7 @@ export const loginSchema = z.object({
 export const signupSchema = loginSchema.extend({
   password: z
     .string()
-    .min(15)
+    .min(12)
     .max(256)
     .refine(withinBcryptLimit),
 });
