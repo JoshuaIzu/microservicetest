@@ -1,10 +1,10 @@
 import { json, Router } from "express";
-import type { AuthRequestHandler } from "../auth/auth.middleware";
+import type { SettlementRequestHandler } from "./settlement.auth";
 import type { SettlementController } from "./settlement.controller";
 
 export function createSettlementRoutes(
   controller: SettlementController,
-  authenticate: AuthRequestHandler,
+  authenticate: SettlementRequestHandler,
 ): Router {
   const router = Router();
 

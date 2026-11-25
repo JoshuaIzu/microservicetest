@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@demo/reconciliation-db"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("RECONCILIATION_DATABASE_URL")
+  schemas  = ["fintech"]
+}
+
+model Settlement {
+  paymentId   String @id @db.Uuid
+  amountMinor Int
+  currency    String
+  provider    String
+
+  @@schema("fintech")
+}
+
+model CapturedPayment {
+  paymentId   String @id @db.Uuid
+  eventId     String @unique @db.Uuid
+  ownerId     String @db.Uuid
+  provider    String
+  currency    String
+  amountMinor Int
+
+  @@schema("fintech")
+}
+
+model PostedJournal {
+  paymentId      String @id @db.Uuid
+  captureEventId String @unique @db.Uuid
+  currency       String
+  amountMinor    Int
+
+  @@schema("fintech")
+}
