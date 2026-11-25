@@ -73,7 +73,7 @@ const authController = new AuthController(authService);
 const authMiddleware = new AuthMiddleware(authService);
 
 const providers = new Map<PaymentProvider, IPaymentProvider>();
-const mockProvider = new MockPaymentProvider(requireEnv("MOCK_WEBHOOK_SECRET"));
+const mockProvider = new MockPaymentProvider(process.env.MOCK_WEBHOOK_SECRET);
 providers.set("MOCK_NG", mockProvider);
 providers.set("MOCK_US", mockProvider);
 

@@ -11,11 +11,7 @@ import type {
 import type { IPaymentProvider } from "./payment-provider.interface";
 
 export class MockPaymentProvider implements IPaymentProvider {
-  constructor(private readonly webhookSecret: string) {
-    if (!webhookSecret.trim()) {
-      throw new Error("MOCK_WEBHOOK_SECRET is required");
-    }
-  }
+  constructor(private readonly webhookSecret?: string) {}
 
   public async charge(request: IProviderChargeRequest): Promise<IChargeResult> {
     return {
@@ -32,13 +28,18 @@ export class MockPaymentProvider implements IPaymentProvider {
     rawBody: Buffer,
     headers: IncomingHttpHeaders,
   ): CaptureNotice | null {
+    const webhookSecret = this.webhookSecret;
+    if (!webhookSecret?.trim()) {
+      return null;
+    }
+
     const signature = headers["x-demo-signature"];
 
     if (typeof signature !== "string" || !/^[a-f0-9]{64}$/i.test(signature)) {
       return null;
     }
 
-    const expected = createHmac("sha256", this.webhookSecret)
+    const expected = createHmac("sha256", webhookSecret)
       .update(rawBody)
       .digest();
 
