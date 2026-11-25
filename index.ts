@@ -12,10 +12,8 @@ import { AuthService } from "./auth/auth.service";
 import { BcryptPasswordHasher } from "./auth/password-hasher";
 import { UserRepository } from "./auth/user.repository";
 import { OutboxPublisher } from "./events/outbox.publisher";
-import { PaymentSubject } from "./events/payment.subject";
+import { RabbitMqPublisher } from "./events/rabbitmq.publisher";
 import type { PaymentProvider } from "./events/payment-captured.contract";
-import { JournalRepository } from "./ledger/journal.repository";
-import { LedgerService } from "./ledger/ledger.service";
 import { PaymentController } from "./payments/payment.controller";
 import { PaymentRepository } from "./payments/payment.repository";
 import { createPaymentRoutes } from "./payments/payment.routes";
@@ -25,10 +23,6 @@ import { MockPaymentProvider } from "./payments/providers/mock-payment.provider"
 import { PaystackProvider } from "./payments/providers/paystack.provider";
 import type { IPaymentProvider } from "./payments/providers/payment-provider.interface";
 import { CurrencyRoutingStrategy } from "./payments/strategies/currency-routing.strategy";
-import { SettlementController } from "./reconciliation/settlement.controller";
-import { SettlementRepository } from "./reconciliation/settlement.repository";
-import { createSettlementRoutes } from "./reconciliation/settlement.routes";
-import { SettlementService } from "./reconciliation/settlement.service";
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -127,23 +121,9 @@ app.use(
   ),
 );
 
-const journalRepo = new JournalRepository(prisma);
-const ledgerService = new LedgerService(journalRepo);
-const paymentSubject = new PaymentSubject();
-
-paymentSubject.subscribe(ledgerService.postPaymentCapture);
-
-const outboxPublisher = new OutboxPublisher(prisma, paymentSubject);
+const publisher = new RabbitMqPublisher(requireEnv("AMQP_URL"));
+const outboxPublisher = new OutboxPublisher(prisma, publisher);
 outboxPublisher.start();
-
-const settlementRepo = new SettlementRepository(prisma);
-const settlementService = new SettlementService(settlementRepo);
-const settlementController = new SettlementController(settlementService);
-
-app.use(
-  "/demo/settlements",
-  createSettlementRoutes(settlementController, authMiddleware.authenticate),
-);
 
 app.get("/health", async (_req, res) => {
   try {

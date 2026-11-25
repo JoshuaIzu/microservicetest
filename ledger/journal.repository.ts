@@ -1,4 +1,4 @@
-import { Prisma, type PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@demo/ledger-db";
 import type { IJournalRepository } from "./journal-repository.interface";
 import type { ICreateJournalParams } from "./ledger.types";
 

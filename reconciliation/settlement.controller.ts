@@ -1,15 +1,15 @@
 import { asyncHandler } from "../shared/async-handler";
-import type { AuthRequestHandler } from "../auth/auth.middleware";
+import type { SettlementRequestHandler } from "./settlement.auth";
 import type { SettlementService } from "./settlement.service";
 import { settlementSchema } from "./settlement.types";
 
 export class SettlementController {
   constructor(private readonly settlementService: SettlementService) {}
 
-  public reconcile: AuthRequestHandler = asyncHandler(async (req, res) => {
-    const auth = res.locals.auth;
+  public reconcile: SettlementRequestHandler = asyncHandler(async (req, res) => {
+    const userId = res.locals.userId;
 
-    if (!auth) {
+    if (!userId) {
       res.status(401).json({ error: "UNAUTHENTICATED" });
       return;
     }
@@ -21,7 +21,7 @@ export class SettlementController {
       return;
     }
 
-    const result = await this.settlementService.reconcile(auth.sub, input.data);
+    const result = await this.settlementService.reconcile(userId, input.data);
 
     if (!result) {
       res.status(404).json({ error: "SETTLEMENT_NOT_FOUND" });

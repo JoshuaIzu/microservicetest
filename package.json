@@ -8,18 +8,24 @@
     "start": "node --env-file-if-exists=.env dist/index.js",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy"
+    "prisma:generate": "prisma generate --schema prisma/schema.prisma && prisma generate --schema prisma/ledger/schema.prisma && prisma generate --schema prisma/reconciliation/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
+    "prisma:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
+    "prisma:deploy:ledger": "prisma migrate deploy --schema prisma/ledger/schema.prisma",
+    "prisma:deploy:reconciliation": "prisma migrate deploy --schema prisma/reconciliation/schema.prisma",
+    "start:ledger": "node --env-file-if-exists=.env dist/ledger/index.js",
+    "start:reconciliation": "node --env-file-if-exists=.env dist/reconciliation/index.js"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
+    "amqplib": "^2.4.1",
     "bcrypt": "^5.1.1",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.8",
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",

@@ -24,8 +24,24 @@ export const captureNoticeSchema = z.object({
 
 export const paymentCapturedSchema = captureNoticeSchema.extend({
   id: z.string().uuid(),
-  type: z.literal("payment.captured.v1"),
+  type: z.literal("payment.captured.v2"),
+  ownerId: z.string().uuid(),
 });
 
 export type CaptureNotice = z.infer<typeof captureNoticeSchema>;
 export type PaymentCaptured = z.infer<typeof paymentCapturedSchema>;
+
+export const ledgerPostedSchema = z.object({
+  type: z.literal("ledger.posted.v1"),
+  paymentId: z.string().uuid(),
+  captureEventId: z.string().uuid(),
+  currency: currencySchema,
+  amountMinor: amountMinorSchema,
+}).strict();
+
+export const brokerEventSchema = z.discriminatedUnion("type", [
+  paymentCapturedSchema,
+  ledgerPostedSchema,
+]);
+
+export type BrokerEvent = z.infer<typeof brokerEventSchema>;

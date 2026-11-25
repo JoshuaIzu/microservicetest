@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { paymentCapturedSchema } from "./payment-captured.contract";
-import type { IPaymentEventPublisher } from "./payment.subject";
+import type { IPaymentEventPublisher } from "./rabbitmq.publisher";
 
 export class OutboxPublisher {
   private timer: ReturnType<typeof setInterval> | undefined;
@@ -39,7 +39,10 @@ export class OutboxPublisher {
 
     try {
       const rows = await this.db.outboxEvent.findMany({
-        where: { deliveredAt: null },
+        where: {
+          deliveredAt: null,
+          payload: { path: ["type"], equals: "payment.captured.v2" },
+        },
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         take: 25,
       });

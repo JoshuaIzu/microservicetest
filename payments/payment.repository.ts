@@ -124,10 +124,16 @@ export class PaymentRepository implements IPaymentRepository {
           return sameCapture ? "duplicate" : "mismatch";
         }
 
+        const { ownerId } = await tx.payment.findUniqueOrThrow({
+          where: { id: paymentId },
+          select: { ownerId: true },
+        });
+
         const event: PaymentCaptured = {
+          ownerId,
           ...notice,
           id: randomUUID(),
-          type: "payment.captured.v1",
+          type: "payment.captured.v2",
         };
 
         await tx.outboxEvent.create({
